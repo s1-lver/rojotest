@@ -7,7 +7,7 @@ local CameraService = {}
 -- local MAX_LENGTH = 900000
 
 local cooldown = 100
-local currenttime = 100
+local currenttime = cooldown
 
 local Player
 local Character
@@ -70,10 +70,10 @@ local function Update()
     end
 end
 
-function CameraService.Initialise(player, char)
+function CameraService.Init(player)
     Player = player
-    Character = char
-    createCam(char)
+    Character = player.Character
+    createCam(Character)
 
     Character.Humanoid:GetPropertyChangedSignal("FloorMaterial"):Connect(function()
         if Character.Humanoid.FloorMaterial == Enum.Material.Air then
@@ -83,9 +83,9 @@ function CameraService.Initialise(player, char)
         end
     end)
 
-    TweenPos = char:WaitForChild("HumanoidRootPart").CFrame * Offset
+    TweenPos = Character:WaitForChild("HumanoidRootPart").CFrame * Offset
     Cam:Destroy()
-    createCam(char)
+    createCam(Character)
 
     RunService.RenderStepped:Connect(function()
         Update()
