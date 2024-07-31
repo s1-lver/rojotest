@@ -33,7 +33,7 @@ function NametagService:Update(name: string)
     InstanceUtil.SetProperties(self.GUI, {
         Parent = Character,
         Adornee = Character.Head,
-        ExtentsOffsetWorldSpace = Vector3.new(0, 2 + self:CalculateYOffset(), 0)
+        StudsOffset = Vector3.new(2.5, 0, 0)
     })
 
     self.GUI.NameLabel.Text = name

@@ -7,17 +7,22 @@ local CameraService = {}
 
 -- local MAX_LENGTH = 900000
 
+workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
+
 local cooldown = 100
 local currenttime = cooldown
 
 local Character
-local JumpedOrFalling = 0
+local _JumpedOrFalling = 0
 
 local Cam
 local count = 0
 
 local TweenPos
 local Offset = CFrame.new(0, 2, 0)
+
+local CameraYOffset = 35
+local CameraOrientation = CFrame.Angles(-math.rad(-90), -math.rad(-180), -math.rad(0))
 
 function CameraService.Init(player: Player)
     Character = player.Character
@@ -58,10 +63,10 @@ function createCam()
         CFrame = Character:WaitForChild("HumanoidRootPart").CFrame * Offset
     })
 
-    local camera = workspace.CurrentCamera
+    --local camera = workspace.CurrentCamera
 
     if Character:WaitForChild("HumanoidRootPart", 5) and Character:WaitForChild(Cam.Name, 5) then
-        camera.CameraSubject = Cam
+        -- camera.CameraSubject = Cam
     else
         createCam()
     end
@@ -83,12 +88,13 @@ function Update()
         end
         if Character:FindFirstChild(Cam.Name) or Cam ~= nil then
             local tween
-            if JumpedOrFalling == 0 then
+            --if JumpedOrFalling == 0 then
                 tween = TweenService:Create(Cam, TweenInfo.new(0.75, Enum.EasingStyle.Back), {CFrame = TweenPos})
-            elseif JumpedOrFalling == 1 then
-                tween = TweenService:Create(Cam, TweenInfo.new(0.45, Enum.EasingStyle.Back), {CFrame = TweenPos})
-            end
+            --elseif JumpedOrFalling == 1 then
+                --tween = TweenService:Create(Cam, TweenInfo.new(0.45, Enum.EasingStyle.Back), {CFrame = TweenPos})
+            --end
             tween:Play()
+            workspace.CurrentCamera.CFrame = CFrame.new(Cam.CFrame.Position.X, CameraYOffset, Cam.CFrame.Position.Z) * CameraOrientation
         else
         end
     end
