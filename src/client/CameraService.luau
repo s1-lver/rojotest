@@ -1,6 +1,7 @@
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+
+local InstanceUtil = require(game.ReplicatedStorage.Utilities.InstanceUtil)
 
 local CameraService = {}
 
@@ -9,20 +10,37 @@ local CameraService = {}
 local cooldown = 100
 local currenttime = cooldown
 
-local Player
 local Character
 local JumpedOrFalling = 0
-local ShiftlockEnabled = false
 
-local Cam = nil
-
+local Cam
 local count = 0
+
 local TweenPos
 local Offset = CFrame.new(0, 2, 0)
 
-local function createCam(char)
-    Character = Player.Character
+function CameraService.Init(player: Player)
+    Character = player.Character
+    createCam()
 
+    Character.Humanoid:GetPropertyChangedSignal("FloorMaterial"):Connect(function()
+        if Character.Humanoid.FloorMaterial == Enum.Material.Air then
+            JumpedOrFalling = 1
+        else
+            JumpedOrFalling = 0
+        end
+    end)
+
+    UpdateTweenPos()
+    Cam:Destroy()
+    createCam()
+
+    RunService.RenderStepped:Connect(function()
+        Update()
+    end)
+end
+
+function createCam()
     if currenttime < cooldown then return end
     
     count += 1
@@ -30,32 +48,38 @@ local function createCam(char)
 
     currenttime = 0
 
-    Cam = Instance.new("Part", char)
-    Cam.Parent = char
-    Cam.Transparency = 1
-    Cam.Anchored = true
-    Cam.CanCollide = false
-    Cam.Name = "SmoothCam" .. count
-    Cam.CFrame = Character:WaitForChild("HumanoidRootPart").CFrame * Offset
+    Cam = Instance.new("Part", Character)
+    InstanceUtil.SetProperties(Cam, {
+        Parent = Character,
+        Transparency = 1,
+        Anchored = true,
+        CanCollide = false,
+        Name = "SmoothCam" .. count,
+        CFrame = Character:WaitForChild("HumanoidRootPart").CFrame * Offset
+    })
 
     local camera = workspace.CurrentCamera
 
-    if char:WaitForChild("HumanoidRootPart", 5) and char:WaitForChild(Cam.Name, 5) then
+    if Character:WaitForChild("HumanoidRootPart", 5) and Character:WaitForChild(Cam.Name, 5) then
         camera.CameraSubject = Cam
     else
-        createCam(char)
+        createCam()
     end
 
+    UpdateTweenPos()
+end
+
+function UpdateTweenPos()
     TweenPos = Character:WaitForChild("HumanoidRootPart").CFrame * Offset
 end
 
 -- does all the tweening stuff
-local function Update()
+function Update()
     currenttime = math.clamp(currenttime + 1, 0, cooldown)
     if Character:FindFirstChild("HumanoidRootPart") then
-        TweenPos = Character:WaitForChild("HumanoidRootPart").CFrame * Offset
+        UpdateTweenPos()
         if not Cam or not Character:FindFirstChild(Cam.Name) then
-            createCam(Character)
+            createCam()
         end
         if Character:FindFirstChild(Cam.Name) or Cam ~= nil then
             local tween
@@ -70,41 +94,7 @@ local function Update()
     end
 end
 
-function CameraService.Init(player)
-    Player = player
-    Character = player.Character
-    createCam(Character)
-
-    Character.Humanoid:GetPropertyChangedSignal("FloorMaterial"):Connect(function()
-        if Character.Humanoid.FloorMaterial == Enum.Material.Air then
-            JumpedOrFalling = 1
-        else
-            JumpedOrFalling = 0
-        end
-    end)
-
-    TweenPos = Character:WaitForChild("HumanoidRootPart").CFrame * Offset
-    Cam:Destroy()
-    createCam(Character)
-
-    RunService.RenderStepped:Connect(function()
-        Update()
-    end)
-end
-
-function CameraService.ToggleShiftlock()
-    if ShiftlockEnabled then
-        ShiftlockEnabled = false
-        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-        Offset = CFrame.new(0, 2, 0)
-    else
-        ShiftlockEnabled = true
-        UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
-        Offset = CFrame.new(0, 4, 0)
-    end
-end
-
--- idk wtf this is for dont press me
+-- not needed rn
 --[[ function CameraService.GetUpdatedCameraCFrame(ROOT, CAMERA)
     return CFrame.new(ROOT.Position, Vector3.new(CAMERA.CFrame.LookVector.X * MAX_LENGTH, ROOT.Position.Y, CAMERA.CFrame.LookVector.Z * MAX_LENGTH))
 end ]]
